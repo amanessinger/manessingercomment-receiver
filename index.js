@@ -2,10 +2,35 @@ exports.handler = (event, context, callback) => {
 
     let incomingMsg = JSON.stringify(event);
 
-    // create SHA1 hash of event
-    var crypto = require('crypto'), shasum = crypto.createHash('sha1');
-    shasum.update(incomingMsg);
-    let deduplicationId = shasum.digest('hex');
+    const path = require('path');
+    let receivedHash = path.basename(event.attach_to);
+    let fqname = path.dirname(event.attach_to);
+    let secret = process.env.HUGO_SECRET;
+
+    const crypto = require('crypto');
+
+    // create SHA-256 hash of event
+    let checksum = crypto.createHash('sha256');
+    checksum.update(secret+fqname);
+    let checkHash = checksum.digest('hex');
+
+    if (checkHash !== receivedHash) {
+        console.log('fqname       = '+fqname);
+        console.log('secret       = '+secret);
+        console.log('combined     = '+secret+fqname);
+        console.log('receivedHash = '+receivedHash);
+        console.log('checkHash    = '+checkHash);
+        var responseBody = {
+            "status": "bad request",
+            "description": "not accepted"
+        };
+        sendResponse(callback, 400, responseBody);
+    }
+
+    // create SHA-256 hash of event
+    let eventsum = crypto.createHash('sha256');
+    eventsum.update(incomingMsg);
+    let deduplicationId = eventsum.digest('hex');
 
     // Load the AWS SDK for Node.js
     var AWS = require('aws-sdk');
