@@ -1,10 +1,13 @@
 exports.handler = (event, context, callback) => {
 
-    let incomingMsg = JSON.stringify(event);
+    let body = JSON.parse(event.body);
+    let incomingMsg = JSON.stringify(body);
+
+    // console.log(incomingMsg);
 
     const path = require('path');
-    let receivedHash = path.basename(event.attach_to);
-    let fqname = path.dirname(event.attach_to);
+    let receivedHash = path.basename(body.attach_to);
+    let fqname = path.dirname(body.attach_to);
     let secret = process.env.HUGO_SECRET;
 
     const crypto = require('crypto');
@@ -15,11 +18,13 @@ exports.handler = (event, context, callback) => {
     let checkHash = checksum.digest('hex');
 
     if (checkHash !== receivedHash) {
+        /*
         console.log('fqname       = '+fqname);
         console.log('secret       = '+secret);
         console.log('combined     = '+secret+fqname);
         console.log('receivedHash = '+receivedHash);
         console.log('checkHash    = '+checkHash);
+        */
         var responseBody = {
             "status": "bad request",
             "description": "not accepted"
