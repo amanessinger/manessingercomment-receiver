@@ -1,6 +1,8 @@
 exports.handler = (event, context, callback) => {
 
     let body = JSON.parse(event.body);
+    // https://stackoverflow.com/questions/10645994/node-js-how-to-format-a-date-string-in-utc
+    body.date = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
     let incomingMsg = JSON.stringify(body);
 
     // console.log(incomingMsg);
